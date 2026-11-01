@@ -11,7 +11,7 @@ export class AppComponent {
 
     githubUsername = '';
     data: any;
-    error = ;
+    error = '';
 
     constructor(private githubService: GithubService) {}
 

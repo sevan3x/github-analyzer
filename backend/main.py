@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from github_api import get_user_data, get_user_repos
-from github_user import User
+from github_user import GitHubUser
 
 
 app = FastAPI()
