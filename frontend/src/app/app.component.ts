@@ -4,6 +4,7 @@ import { GithubService } from './github.service';
 
 @Component({
     selector: 'app-root',
+    standalone: false,
     templateUrl: './app.component.html'
 })
 
