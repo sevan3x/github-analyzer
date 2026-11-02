@@ -11,7 +11,7 @@ GH_CLIENT = GithubClient(REQUEST_TIMEOUT, HEADERS)
 
 def get_user_data(username):
     """
-    call the GitHub API and return a dict with data or None
+    call the GitHub API and return a dict with data or None (actually now raising GitHubAPIError)
     """
     response, data = GH_CLIENT.request_github(f"{BASE_URL}/users/{username}")
 
@@ -26,7 +26,8 @@ def get_user_data(username):
 
 def get_user_repos(username):
     """
-    call the GitHub API and return a list of dicts(repos name, language/technology) with data or None
+    call the GitHub API and return a list of dicts(repos name, language/technology) 
+    with data or None (actually now raising GitHubAPIError)
     """
     repos = []
     url = f"{BASE_URL}/users/{username}/repos"
@@ -42,15 +43,15 @@ def get_user_repos(username):
                 status_code=response.status_code,
             )
 
-        for repo in data:
-            if not isinstance(repo, dict) or "name" not in repo:
+        for fetched_repo in data:
+            if not isinstance(fetched_repo, dict) or "name" not in fetched_repo:
                 raise GitHubAPIError(
                     "GitHub returned invalid repository data.",
                     "invalid_response",
                     status_code=response.status_code,
                 )
 
-            repos.append({"name": repo["name"], "language": repo.get("language")})
+            repos.append({"name": fetched_repo["name"], "language": fetched_repo.get("language")})
         url = response.links.get("next", {}).get("url")
 
         # Pagination URLs already contain their query params, 
