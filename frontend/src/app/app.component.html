@@ -1,8 +1,79 @@
 <h1>Github Analyzer</h1>
 
-<!--<input add logic >-->
-<!--<button>ADD logic</button>-->
+<form
+    #searchForm="ngForm"
+    (ngSubmit)="searchForm.valid && search()"
+>
+    <label for="githubUsername">GitHub username</label>
 
-<div *ngIf="data">
-<!--    add data here for followers, repositories, most used technology -->
-</div>
+    <input
+        id="githubUsername"
+        name="githubUsername"
+        type="text"
+        [(ngModel)]="githubUsername"
+        #usernameField="ngModel"
+        required
+        maxlength="39"
+        pattern="^[A-Za-z0-9]+(-[A-Za-z0-9]+)*$"
+    >
+
+    @if (usernameField.invalid && usernameField.touched) {
+        <p role="alert">
+            Only letters, numbers or dash symbols are allowed.
+        </p>
+    }
+
+    <button type="submit" [disabled]="searchForm.invalid || loading()">
+        {{ loading() ? 'Searching...' : 'Search' }}
+    </button>
+</form>
+
+@if (loading()) {
+    <p role="status">Loading Github user...</p>
+}
+
+@if (error()) {
+    <p role="alert">{{ error() }}</p>
+}
+
+@if (data(); as user) {
+    <section>
+        <h2>{{ user.username }}</h2>
+
+        <p>Followers: {{ user.followers }}</p>
+
+        @for (message of user.messages; track message) {
+            <p>{{ message }}</p>
+        }
+
+        <h3>Most-used language</h3>
+        <p>
+            {{ user.most_used_language ?? 'No language detected.' }}
+        </p>
+
+        <h3>Languages</h3>
+
+        @if (user.languages.length > 0) {
+            <ul>
+                @for (language of user.languages; track language) {
+                    <li>{{ language }}</li>
+                }
+            </ul>
+        } @else {
+            <p>No languages detected.</p>
+        }
+
+        @if (user.repos.length > 0) {
+            <h3>Repositories ({{ user.repos.length }})</h3>
+
+            <ul>
+                @for (repo of user.repos; track repo.name) {
+                    <li>
+                        <strong>{{ repo.name }}</strong>
+                        — {{ repo.language ?? 'No language detected' }}
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+}

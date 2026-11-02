@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import type { GithubUserResponse } from './models/github-user.model';
 
 
 @Injectable({
@@ -13,7 +14,7 @@ export class GithubService {
     constructor(private http: HttpClient) {}
 
     getUser(username: string) {
-        return this.http.get(`${this.apiUrl}?username=${username}`);
+        return this.http.get<GithubUserResponse>(this.apiUrl, { params: { username } });
     }
 
 }
