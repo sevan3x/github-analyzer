@@ -1,0 +1,30 @@
+:host {
+    display: block;
+}
+
+.page-banner {
+    padding: 48px 20px;
+    text-align: center;
+    background: linear-gradient(135deg, #1b2545, #291b52);
+    border-bottom: 1px solid rgba(165, 175, 194, 0.2);
+}
+
+.page-banner h1 {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+}
+
+.page-banner p {
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-size: 1.05rem;
+}
+
+.page-content {
+    width: 100%;
+    max-width: 760px;
+    margin: 40px auto;
+    padding: 0 20px;
+}

@@ -9,7 +9,8 @@ import type { GithubUserResponse } from './models/github-user.model';
 @Component({
     selector: 'app-root',
     standalone: false,
-    templateUrl: './app.component.html'
+    templateUrl: './app.component.html',
+    styleUrl: './app.component.css'
 })
 
 export class AppComponent {
