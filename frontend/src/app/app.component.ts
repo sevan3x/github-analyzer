@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import type { HttpErrorResponse } from '@angular/common/http';
-import { finalize } from 'rxjs';
+import { finalize, timeout } from 'rxjs';
 
 import { GithubService } from './github.service';
 import type { GithubUserResponse } from './models/github-user.model';
@@ -41,7 +41,10 @@ export class AppComponent {
         this.loading.set(true);
 
         this.githubService.getUser(username)
-        .pipe(finalize(() => this.loading.set(false)))
+        .pipe(
+            timeout(15000),
+            finalize(() => this.loading.set(false))
+        )
         .subscribe({
             next: (user) => {
                 this.data.set(user);
