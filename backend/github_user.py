@@ -13,8 +13,10 @@ class GitHubUser:
         self.username: str = username
         self.followers: Optional[int] = followers
         self.repos: List[GitHubRepository] = [] if repos is None else repos
+        self.most_used_language = self._get_most_used_language()
+        self.all_languages = self._get_all_languages()
 
-    def get_most_used_language(self) -> Optional[str]:
+    def _get_most_used_language(self) -> Optional[str]:
         language_counts: Dict[str, int] = {}
 
         for repo in self.repos:
@@ -38,7 +40,7 @@ class GitHubUser:
         # the approach here should be decided
         return most_used_lang
 
-    def get_all_languages(self) -> List[str]:
+    def _get_all_languages(self) -> List[str]:
         languages: Set[str] = set()
 
         for repo in self.repos:
@@ -61,7 +63,7 @@ class GitHubUser:
             "username": self.username,
             "followers": self.followers,
             "repos": self.repos,
-            "most_used_language": self.get_most_used_language(),
-            "languages": self.get_all_languages(),
+            "most_used_language": self.most_used_language,
+            "languages": self.all_languages,
             "messages": messages,
         }
