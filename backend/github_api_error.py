@@ -1,7 +1,15 @@
+from typing import Optional
+
+
 class GitHubAPIError(Exception):
     def __init__(
-        self, message, code, status_code=None, retry_after=None, rate_limit_reset=None
-    ):
+        self,
+        message: str,
+        code: str,
+        status_code: Optional[int] = None,
+        retry_after: Optional[str] = None,
+        rate_limit_reset: Optional[str] = None,
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.code = code

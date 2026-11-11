@@ -1,13 +1,19 @@
+from typing import Any, Dict, Mapping, Optional, Tuple
+
 import requests
 from github_api_error import GitHubAPIError
 
 
 class GithubClient:
-    def __init__(self, timeout=10, headers=None):
-        self.timeout = timeout
-        self.headers = headers
+    def __init__(
+        self, timeout: float = 10, headers: Optional[Dict[str, str]] = None
+    ) -> None:
+        self.timeout: float = timeout
+        self.headers: Optional[Dict[str, str]] = headers
 
-    def request_github(self, url, params=None):
+    def request_github(
+        self, url: str, params: Optional[Mapping[str, Any]] = None
+    ) -> Tuple[requests.Response, Any]:
         # Handle connection issues
         try:
             response = requests.get(
@@ -34,7 +40,7 @@ class GithubClient:
 
         # Handle invalid json response
         try:
-            data = response.json()
+            data: Any = response.json()
         except ValueError as error:
             if status == 200:
                 raise GitHubAPIError(
@@ -77,7 +83,7 @@ class GithubClient:
             "GitHub returned an unexpected response.", "invalid_response", status_code=status
         )
 
-    def _is_rate_limited(self, response, data):
+    def _is_rate_limited(self, response: requests.Response, data: object) -> bool:
         if response.status_code == 429:
             return True
         if response.status_code != 403:

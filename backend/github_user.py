@@ -1,11 +1,21 @@
-class GitHubUser:
-    def __init__(self, username, followers=None, repos=None):
-        self.username = username
-        self.followers = followers
-        self.repos = [] if repos is None else repos
+from typing import Any, Dict, List, Optional, Set
 
-    def get_most_used_language(self):
-        language_counts = {}
+from github_types import GitHubRepository
+
+
+class GitHubUser:
+    def __init__(
+        self,
+        username: str,
+        followers: Optional[int] = None,
+        repos: Optional[List[GitHubRepository]] = None,
+    ) -> None:
+        self.username: str = username
+        self.followers: Optional[int] = followers
+        self.repos: List[GitHubRepository] = [] if repos is None else repos
+
+    def get_most_used_language(self) -> Optional[str]:
+        language_counts: Dict[str, int] = {}
 
         for repo in self.repos:
             if repo['language'] is None:
@@ -16,7 +26,7 @@ class GitHubUser:
             else:
                 language_counts[repo['language']] = 1
 
-        most_used_lang = None
+        most_used_lang: Optional[str] = None
         highest_count = 0
 
         for lang, count in language_counts.items():
@@ -28,8 +38,8 @@ class GitHubUser:
         # the approach here should be decided
         return most_used_lang
 
-    def get_all_languages(self):
-        languages = set()
+    def get_all_languages(self) -> List[str]:
+        languages: Set[str] = set()
 
         for repo in self.repos:
             lang = repo["language"]
@@ -38,8 +48,8 @@ class GitHubUser:
 
         return sorted(languages)
 
-    def to_dict(self):
-        messages = []
+    def to_dict(self) -> Dict[str, Any]:
+        messages: List[str] = []
 
         if self.followers == 0:
             messages.append("This user has no followers.")

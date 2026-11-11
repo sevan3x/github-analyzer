@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -26,7 +28,7 @@ def get_user(
             "GitHub username: contains letters or numbers, optionally separated by single dash."
         ),
     ),
-):
+) -> Dict[str, Any]:
     try:
         profile = get_user_data(username)
         repos = get_user_repos(username)

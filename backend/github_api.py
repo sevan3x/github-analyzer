@@ -1,5 +1,8 @@
+from typing import Any, Dict, List, Optional
+
 from github_client import GithubClient
 from github_api_error import GitHubAPIError
+from github_types import GitHubRepository
 
 
 BASE_URL = "https://api.github.com"
@@ -9,10 +12,8 @@ HEADERS = {"Accept": "application/vnd.github+json"}
 GH_CLIENT = GithubClient(REQUEST_TIMEOUT, HEADERS)
 
 
-def get_user_data(username):
-    """
-    call the GitHub API and return a dict with data or None (actually now raising GitHubAPIError)
-    """
+def get_user_data(username: str) -> Dict[str, Any]:
+    """Return profile data, raising GitHubAPIError if fetching it fails."""
     response, data = GH_CLIENT.request_github(f"{BASE_URL}/users/{username}")
 
     if not isinstance(data, dict):
@@ -24,14 +25,11 @@ def get_user_data(username):
     return data
 
 
-def get_user_repos(username):
-    """
-    call the GitHub API and return a list of dicts(repos name, language/technology) 
-    with data or None (actually now raising GitHubAPIError)
-    """
-    repos = []
-    url = f"{BASE_URL}/users/{username}/repos"
-    params = {"per_page": 100}
+def get_user_repos(username: str) -> List[GitHubRepository]:
+    """Return public repositories, raising GitHubAPIError on fetching failures."""
+    repos: List[GitHubRepository] = []
+    url: Optional[str] = f"{BASE_URL}/users/{username}/repos"
+    params: Optional[Dict[str, int]] = {"per_page": 100}
 
     while url:
         response, data = GH_CLIENT.request_github(url, params=params)
