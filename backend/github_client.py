@@ -51,10 +51,18 @@ class GithubClient:
     def _request_github(
         self, path: str, params: Optional[Mapping[str, Any]] = None
     ) -> Tuple[requests.Response, Any]:
+        response = self._send_request(path, params)
+        data = self._parse_json(response)
+        self._check_status(response, data)
+        return response, data
+
+    def _send_request(
+        self, path: str, params: Optional[Mapping[str, Any]] = None
+    ) -> requests.Response:
+        """Send a request and translate connection failures."""
         url = urljoin(self.base_url, path.lstrip("/"))
-        # Handle connection issues
         try:
-            response = requests.get(
+            return requests.get(
                 url, params=params, headers=self.headers, timeout=self.timeout
             )
         except requests.Timeout as error:
@@ -70,27 +78,32 @@ class GithubClient:
                 "The request to GitHub failed. Please try again.", "request_error"
             ) from error
 
+    def _parse_json(self, response: requests.Response) -> Any:
+        """Parse JSON, allowing non-JSON bodies on unsuccessful responses."""
+        try:
+            return response.json()
+        except ValueError as error:
+            # Error responses may contain HTML or no body at all.
+            if response.status_code != 200:
+                return None
+
+            raise GitHubAPIError(
+                "GitHub returned invalid JSON.",
+                "invalid_response",
+                status_code=response.status_code,
+            ) from error
+
+    def _check_status(self, response: requests.Response, data: object) -> None:
+        """Check success, missing resources, rate limits, and other statuses."""
         status = response.status_code
+        if status == 200:
+            return
+
         if status == 404:
             raise GitHubAPIError(
                 "GitHub resource was not found.", "resource_not_found", status_code=status
             )
 
-        # Handle invalid json response
-        try:
-            data: Any = response.json()
-        except ValueError as error:
-            if status == 200:
-                raise GitHubAPIError(
-                    "GitHub returned invalid JSON.", "invalid_response", status_code=status
-                ) from error
-            # Error responses may contain HTML or no body at all.
-            data = None
-
-        if status == 200:
-            return response, data
-
-        # Handle rate limit exceeding
         if self._is_rate_limited(response, data):
             raise GitHubAPIError(
                 "GitHub API rate limit exceeded. Please try again later.",
@@ -100,10 +113,17 @@ class GithubClient:
                 rate_limit_reset=response.headers.get("X-RateLimit-Reset"),
             )
 
-        # Handle Github API http errors
+        self._raise_for_http_error(response)
+        raise GitHubAPIError(
+            "GitHub returned an unexpected response.", "invalid_response", status_code=status
+        )
+
+    def _raise_for_http_error(self, response: requests.Response) -> None:
+        """Translate HTTP errors while preserving their original cause."""
         try:
             response.raise_for_status()
         except requests.HTTPError as error:
+            status = response.status_code
             if status == 401:
                 message = "GitHub rejected the request's authentication."
             elif status == 403:
@@ -115,11 +135,6 @@ class GithubClient:
             raise GitHubAPIError(
                 message, "http_error", status_code=status
             ) from error
-
-        # Handle any unexpected error
-        raise GitHubAPIError(
-            "GitHub returned an unexpected response.", "invalid_response", status_code=status
-        )
 
     def _is_rate_limited(self, response: requests.Response, data: object) -> bool:
         if response.status_code == 429:
