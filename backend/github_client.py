@@ -1,4 +1,5 @@
-from typing import Any, Dict, Mapping, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Tuple
+from urllib.parse import urljoin
 
 import requests
 from github_api_error import GitHubAPIError
@@ -6,14 +7,51 @@ from github_api_error import GitHubAPIError
 
 class GithubClient:
     def __init__(
-        self, timeout: float = 10, headers: Optional[Dict[str, str]] = None
+        self,
+        timeout: float = 10,
+        headers: Optional[Dict[str, str]] = None,
+        base_url: str = "https://api.github.com",
     ) -> None:
         self.timeout: float = timeout
         self.headers: Optional[Dict[str, str]] = headers
+        self.base_url: str = base_url.rstrip("/") + "/"
 
-    def request_github(
-        self, url: str, params: Optional[Mapping[str, Any]] = None
+    def get_json(
+        self, path: str, params: Optional[Mapping[str, Any]] = None
+    ) -> Any:
+        """Return parsed JSON without exposing the HTTP response."""
+        _, data = self._request_github(path, params=params)
+        return data
+
+    def get_all_pages(
+        self, path: str, params: Optional[Mapping[str, Any]] = None
+    ) -> List[Any]:
+        """Collect a paginated list, raising an error if any page fails."""
+        items: List[Any] = []
+        url: Optional[str] = path
+        query: Optional[Dict[str, Any]] = dict(params) if params is not None else {}
+        query.setdefault("per_page", 100)
+
+        while url:
+            response, data = self._request_github(url, params=query)
+            if not isinstance(data, list):
+                raise GitHubAPIError(
+                    "GitHub returned invalid paginated data.",
+                    "invalid_response",
+                    status_code=response.status_code,
+                )
+
+            items.extend(data)
+            url = response.links.get("next", {}).get("url")
+            # GitHub's next-page URL already includes its query parameters.
+            query = None
+
+        return items
+
+    def _request_github(
+        self, path: str, params: Optional[Mapping[str, Any]] = None
     ) -> Tuple[requests.Response, Any]:
+        url = urljoin(self.base_url, path.lstrip("/"))
         # Handle connection issues
         try:
             response = requests.get(
@@ -35,7 +73,7 @@ class GithubClient:
         status = response.status_code
         if status == 404:
             raise GitHubAPIError(
-                "GitHub user was not found.", "user_not_found", status_code=status
+                "GitHub resource was not found.", "resource_not_found", status_code=status
             )
 
         # Handle invalid json response

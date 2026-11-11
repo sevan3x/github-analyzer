@@ -33,7 +33,7 @@ def get_user(
         profile = get_user_data(username)
         repos = get_user_repos(username)
     except GitHubAPIError as error:
-        if error.code == "user_not_found":
+        if error.code == "resource_not_found":
             status_code = 404
         elif error.code == "rate_limit":
             status_code = 429
