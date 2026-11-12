@@ -1,0 +1,33 @@
+:root {
+    color-scheme: dark;
+
+    --page-bg: #0b1020;
+    --panel-bg: #151d2f;
+    --text: #e5e7eb;
+    --muted: #a5afc2;
+    --accent: #7c3aed;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Segoe UI", Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text);
+    background: radial-gradient(
+        circle at top,
+        #1b2545 0%,
+        var(--page-bg) 60%
+    );
+}
+
+button,
+input {
+    font: inherit;
+}

@@ -1,20 +1,37 @@
-import requests
+from typing import Any, Dict, List
+
+from github_client import GithubClient
+from github_api_error import GitHubAPIError, GitHubErrorCode
+from github_types import GitHubRepository
 
 
-BASE_URL = "https://api.github.com"
+GH_CLIENT = GithubClient()
 
 
-def get_user_data(username):
-    """
-    TODO:
-    call the GitHub API and return a dict with data or None
-    """
-    pass
+def get_user_data(username: str) -> Dict[str, Any]:
+    """Return profile data, raising GitHubAPIError if fetching it fails."""
+    data = GH_CLIENT.get_json(f"/users/{username}")
+
+    if not isinstance(data, dict):
+        raise GitHubAPIError(
+            "GitHub returned invalid user data.",
+            GitHubErrorCode.INVALID_RESPONSE,
+        )
+    return data
 
 
-def get_user_repos(username):
-    """
-    TODO:
-    call the GitHub API and return a list of dicts(repos name, language/technology) with data or None
-    """
-    pass
+def get_user_repos(username: str) -> List[GitHubRepository]:
+    """Return public repositories, raising GitHubAPIError on fetching failures."""
+    repos: List[GitHubRepository] = []
+    data = GH_CLIENT.get_all_pages(f"/users/{username}/repos")
+
+    for fetched_repo in data:
+        if not isinstance(fetched_repo, dict) or "name" not in fetched_repo:
+            raise GitHubAPIError(
+                "GitHub returned invalid repository data.",
+                GitHubErrorCode.INVALID_RESPONSE,
+            )
+
+        repos.append({"name": fetched_repo["name"], "language": fetched_repo.get("language")})
+
+    return repos
