@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from github_api import get_user_data, get_user_repos
 from github_user import GitHubUser
-from github_api_error import GitHubAPIError
+from github_api_error import GitHubAPIError, GitHubErrorCode
 
 
 app = FastAPI()
@@ -33,11 +33,11 @@ def get_user(
         profile = get_user_data(username)
         repos = get_user_repos(username)
     except GitHubAPIError as error:
-        if error.code == "resource_not_found":
+        if error.code == GitHubErrorCode.RESOURCE_NOT_FOUND:
             status_code = 404
-        elif error.code == "rate_limit":
+        elif error.code == GitHubErrorCode.RATE_LIMIT:
             status_code = 429
-        elif error.code == "timeout":
+        elif error.code == GitHubErrorCode.TIMEOUT:
             status_code = 504
         else:
             status_code = 502

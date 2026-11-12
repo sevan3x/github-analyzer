@@ -1,7 +1,7 @@
 from typing import Any, Dict, List
 
 from github_client import GithubClient
-from github_api_error import GitHubAPIError
+from github_api_error import GitHubAPIError, GitHubErrorCode
 from github_types import GitHubRepository
 
 
@@ -15,7 +15,7 @@ def get_user_data(username: str) -> Dict[str, Any]:
     if not isinstance(data, dict):
         raise GitHubAPIError(
             "GitHub returned invalid user data.",
-            "invalid_response",
+            GitHubErrorCode.INVALID_RESPONSE,
         )
     return data
 
@@ -29,7 +29,7 @@ def get_user_repos(username: str) -> List[GitHubRepository]:
         if not isinstance(fetched_repo, dict) or "name" not in fetched_repo:
             raise GitHubAPIError(
                 "GitHub returned invalid repository data.",
-                "invalid_response",
+                GitHubErrorCode.INVALID_RESPONSE,
             )
 
         repos.append({"name": fetched_repo["name"], "language": fetched_repo.get("language")})

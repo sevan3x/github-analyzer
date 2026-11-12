@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Mapping, Optional, Tuple
 from urllib.parse import urljoin
 
 import requests
-from github_api_error import GitHubAPIError
+from github_api_error import GitHubAPIError, GitHubErrorCode
 
 
 class GithubClient:
@@ -37,7 +37,7 @@ class GithubClient:
             if not isinstance(data, list):
                 raise GitHubAPIError(
                     "GitHub returned invalid paginated data.",
-                    "invalid_response",
+                    GitHubErrorCode.INVALID_RESPONSE,
                     status_code=response.status_code,
                 )
 
@@ -67,15 +67,18 @@ class GithubClient:
             )
         except requests.Timeout as error:
             raise GitHubAPIError(
-                "GitHub took too long to respond. Please try again.", "timeout"
+                "GitHub took too long to respond. Please try again.",
+                GitHubErrorCode.TIMEOUT,
             ) from error
         except requests.ConnectionError as error:
             raise GitHubAPIError(
-                "Could not connect to GitHub. Please try again.", "connection_error"
+                "Could not connect to GitHub. Please try again.",
+                GitHubErrorCode.CONNECTION_ERROR,
             ) from error
         except requests.RequestException as error:
             raise GitHubAPIError(
-                "The request to GitHub failed. Please try again.", "request_error"
+                "The request to GitHub failed. Please try again.",
+                GitHubErrorCode.REQUEST_ERROR,
             ) from error
 
     def _parse_json(self, response: requests.Response) -> Any:
@@ -89,7 +92,7 @@ class GithubClient:
 
             raise GitHubAPIError(
                 "GitHub returned invalid JSON.",
-                "invalid_response",
+                GitHubErrorCode.INVALID_RESPONSE,
                 status_code=response.status_code,
             ) from error
 
@@ -101,13 +104,15 @@ class GithubClient:
 
         if status == 404:
             raise GitHubAPIError(
-                "GitHub resource was not found.", "resource_not_found", status_code=status
+                "GitHub resource was not found.",
+                GitHubErrorCode.RESOURCE_NOT_FOUND,
+                status_code=status,
             )
 
         if self._is_rate_limited(response, data):
             raise GitHubAPIError(
                 "GitHub API rate limit exceeded. Please try again later.",
-                "rate_limit",
+                GitHubErrorCode.RATE_LIMIT,
                 status_code=status,
                 retry_after=response.headers.get("Retry-After"),
                 rate_limit_reset=response.headers.get("X-RateLimit-Reset"),
@@ -115,7 +120,9 @@ class GithubClient:
 
         self._raise_for_http_error(response)
         raise GitHubAPIError(
-            "GitHub returned an unexpected response.", "invalid_response", status_code=status
+            "GitHub returned an unexpected response.",
+            GitHubErrorCode.INVALID_RESPONSE,
+            status_code=status,
         )
 
     def _raise_for_http_error(self, response: requests.Response) -> None:
@@ -133,7 +140,7 @@ class GithubClient:
             else:
                 message = f"GitHub request failed with HTTP status {status}."
             raise GitHubAPIError(
-                message, "http_error", status_code=status
+                message, GitHubErrorCode.HTTP_ERROR, status_code=status
             ) from error
 
     def _is_rate_limited(self, response: requests.Response, data: object) -> bool:
